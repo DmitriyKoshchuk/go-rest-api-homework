@@ -14,7 +14,7 @@ type Task struct {
 	ID           string   `json:"id"`
 	Description  string   `json:"description"`
 	Note         string   `json:"note"`
-	Applications []string `json:"applications"`
+	Applications []string `json:"application"`
 }
 
 var tasks = map[string]Task{
@@ -59,7 +59,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-func postTasks(w http.ResponseWriter, r *http.Request) {
+func createTasks(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	var buf bytes.Buffer
 
@@ -71,6 +71,11 @@ func postTasks(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if _, exists := tasks[task.ID]; exists {
+		http.Error(w, "Задача с таким ID уже существует", http.StatusBadRequest)
 		return
 	}
 
@@ -120,7 +125,7 @@ func main() {
 	// здесь регистрируйте ваши обработчики
 
 	r.Get("/tasks", getTasks)
-	r.Post("/tasks", postTasks)
+	r.Post("/tasks", createTasks)
 	r.Get("/tasks/{id}", getTask)
 	r.Delete("/tasks/{id}", deleteTasks)
 
